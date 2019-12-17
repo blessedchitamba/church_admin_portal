@@ -74,7 +74,7 @@ include('header.php');
 ?>
 
 
-      <h1>Exammer</h1>
+      <h1>LW Group I Admin</h1>
 
       <?php echo $loginError; ?>
       <!--Form start-->

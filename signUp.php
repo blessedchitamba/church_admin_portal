@@ -10,6 +10,7 @@ include('functions.php');
 $formName="";
 $formSurname="";
 $formEmail="";
+$formOffice="";
 $errorMsg="";
 
 // if sign up form was submitted
@@ -20,12 +21,13 @@ if( isset( $_POST['signUp'] ) ) {
     $formName = validateFormData( $_POST['name']);
     $formSurname = validateFormData( $_POST['surname']);
     $formEmail = validateFormData( $_POST['email'] );
+    $formOffice = validateFormData( $POST['userOffice'] );
     $formPass = validateFormData( $_POST['password'] );
     $formConfirmPass = validateFormData( $_POST['confirmPassword'] );
 
     //if name is empty
-    if( $formName=="" || $formSurname=="") {
-    	$errorMsg = "<div class='alert alert-danger'>Name/Surname cannot be empty.<a class='close' data-dismiss='alert'>&times;</a></div>";
+    if( $formName=="" || $formSurname=="" || $formOffice=="") {
+    	$errorMsg = "<div class='alert alert-danger'>Name/Surname/Office cannot be empty.<a class='close' data-dismiss='alert'>&times;</a></div>";
     } 
     elseif( (strlen($formPass) < 6) && ($errorMsg=="")) {  //if password too short
     	$errorMsg = "<div class='alert alert-danger'>Password must have at least 6 characters.<a class='close' data-dismiss='alert'>&times;</a></div>";
@@ -39,8 +41,11 @@ if( isset( $_POST['signUp'] ) ) {
 	    // connect to database
 	    include('connection.php');
 	    
+        //check if the person exists in members table
+        $query = "SELECT EXISTS(SELECT * FROM member_register WHERE email = '$formEmail')";
+        
 	    // check if email is used
-	    $query = "SELECT * FROM users WHERE Email = '$formEmail' LIMIT 1";
+	    //$query = "SELECT * FROM users WHERE Email = '$formEmail' LIMIT 1";
 
 	    // store the result
     	$result = mysqli_query( $conn, $query );
@@ -117,6 +122,27 @@ name="email" value="<?php echo $formEmail; ?>">
                                 <label for="confirmPassword">Confirm Password</label>
                                 <input type="password" class="form-control" id="confirmPassword" placeholder="Password" name="confirmPassword">
                             </div>
+                            <div class="form-group">
+                                <label for="userOffice">Office</label>
+                                <?php
+                                    include('connection.php');
+                                    $query= "SELECT * FROM offices";
+                                    $result = mysqli_query( $conn, $query );
+                                    if(mysqli_num_rows($result) > 0 ) {
+                                        $test = "hello there";
+                                        echo "<select name='userOffice'>";
+                                        echo "<option value=''>Select office...</option>";
+                                        while ($row=   mysqli_fetch_assoc($result) )
+                                        {
+                                            //echo "<option value='' >Hello there</option>";
+                                            echo "<option value='' >".htmlspecialchars($row["office"])."</option>";
+                                        }
+                                        echo "</select>";
+                                        }
+                                    mysqli_close($conn);
+                                ?>
+                            </div>
+
                             <button type="submit" class="btn btn-success btn-block" name="signUp">Sign Up</button>
                       </form>
                   </div>
