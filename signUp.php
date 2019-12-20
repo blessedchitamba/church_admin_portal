@@ -15,18 +15,20 @@ $errorMsg="";
 
 // if sign up form was submitted
 if( isset( $_POST['signUp'] ) ) {
+    // connect to database
+    include('connection.php');
 
     // create variables
     // wrap data with validate function
     $formName = validateFormData( $_POST['name']);
     $formSurname = validateFormData( $_POST['surname']);
     $formEmail = validateFormData( $_POST['email'] );
-    $formOffice = validateFormData( $POST['userOffice'] );
+    $formOffice = validateFormData( $_POST['office'] );
     $formPass = validateFormData( $_POST['password'] );
     $formConfirmPass = validateFormData( $_POST['confirmPassword'] );
 
     //if name is empty
-    if( $formName=="" || $formSurname=="" || $formOffice=="") {
+    if( $formName=="" || $formSurname=="") {
     	$errorMsg = "<div class='alert alert-danger'>Name/Surname/Office cannot be empty.<a class='close' data-dismiss='alert'>&times;</a></div>";
     } 
     elseif( (strlen($formPass) < 6) && ($errorMsg=="")) {  //if password too short
@@ -36,45 +38,57 @@ if( isset( $_POST['signUp'] ) ) {
     	$errorMsg = "<div class='alert alert-danger'>Passwords do not match. Try again.<a class='close' data-dismiss='alert'>&times;</a></div>";
     }
     
-    //proceed if there are no password errors
-    if( $errorMsg=="") {
-	    // connect to database
-	    include('connection.php');
-	    
-        //check if the person exists in members table
-        $query = "SELECT EXISTS(SELECT * FROM member_register WHERE email = '$formEmail')";
-        
-	    // check if email is used
-	    //$query = "SELECT * FROM users WHERE Email = '$formEmail' LIMIT 1";
 
-	    // store the result
-    	$result = mysqli_query( $conn, $query );
+    // check if email is used
+    $query = "SELECT * FROM users WHERE memberID = (SELECT memberID FROM member_register WHERE email = '$formEmail') LIMIT 1";
 
-    	if( mysqli_num_rows($result) != 0 ) {
-        	$errorMsg = "<div class='alert alert-danger'>This email is already in use.<a class='close' data-dismiss='alert'>&times;</a></div>";
-        } elseif( !filter_var($formEmail, FILTER_VALIDATE_EMAIL) ) {
-        	$errorMsg = "<div class='alert alert-danger'>Please enter a valid email.<a class='close' data-dismiss='alert'>&times;</a></div>";
-        }
-	    // insert into table
-	   //hash the password
+    // store the result
+    $result = mysqli_query( $conn, $query );
+
+    if( mysqli_num_rows($result) != 0 ) {
+        $errorMsg = "<div class='alert alert-danger'>This email is already in use.<a class='close' data-dismiss='alert'>&times;</a></div>";
+    } elseif( !filter_var($formEmail, FILTER_VALIDATE_EMAIL) ) {
+        $errorMsg = "<div class='alert alert-danger'>Please enter a valid email.<a class='close' data-dismiss='alert'>&times;</a></div>";
     }
 
-    //proceed if no password and email errors
+    //proceed if there are no password errors
     if( $errorMsg=="") {
-    	//hash password and insert it
-    	$hashedPass = password_hash($formPass, PASSWORD_DEFAULT);
-    	$query = "INSERT INTO users(Name, Surname, Email, Password) VALUES('$formName', '$formSurname', 
-    				'$formEmail', '$hashedPass')";
+	    
+        //check if the person exists in members table
+        $query = "SELECT * FROM member_register WHERE email = '$formEmail' LIMIT 1";
+        $result = mysqli_query( $conn, $query );
 
-    	$result = mysqli_query( $conn, $query );
+        $hashedPass = password_hash($formPass, PASSWORD_DEFAULT);
+        //. if member exists, add them to users
+        if(mysqli_num_rows($result) != 0 ){
+            //user exists in members
+            $query = "INSERT INTO users(memberID, hashedPass, officeID) VALUES(
+                            (SELECT memberID FROM member_register WHERE name = '$formName'), '$hashedPass', 
+                            (SELECT officeID FROM offices WHERE office = '$formOffice'))";
+            $result = mysqli_query( $conn, $query );
+        } else {
+            //user does not exist in members; add them first. Add the other values as null values and update them when they log in first time
+            $query = "INSERT INTO member_register(name, surname, email, phone_number, university, degree, year_of_study)
+                            VALUES('$formName', '$formSurname', '$formEmail', NULL, NULL, NULL, NULL)";
+            $result = mysqli_query( $conn, $query );
 
-    	if( $result) {
-    		//redirect to success page
-    		header( "Location: success.php?" );
-    	} else {
-    		 // something went wrong
+            //then add them to users
+            $query = "INSERT INTO users(memberID, hashedPass, officeID) VALUES(
+                            (SELECT memberID FROM member_register WHERE name = '$formName'), '$hashedPass', 
+                            (SELECT officeID FROM offices WHERE office = '$formOffice'))";
+            $result = mysqli_query( $conn, $query );
+        }
+
+        if( $result) {
+            //redirect to success page
+            header( "Location: success.php?" );
+        } else {
+             // something went wrong
             echo "Error: ". $query ."<br>" . mysqli_error($conn);
-    	}
+        }
+	    
+	    // insert into table
+	   //hash the password
     }
     
 }
@@ -129,13 +143,12 @@ name="email" value="<?php echo $formEmail; ?>">
                                     $query= "SELECT * FROM offices";
                                     $result = mysqli_query( $conn, $query );
                                     if(mysqli_num_rows($result) > 0 ) {
-                                        $test = "hello there";
-                                        echo "<select name='userOffice'>";
+                                        echo "<select id='userOffice' name='office'>";
                                         echo "<option value=''>Select office...</option>";
                                         while ($row=   mysqli_fetch_assoc($result) )
                                         {
                                             //echo "<option value='' >Hello there</option>";
-                                            echo "<option value='' >".htmlspecialchars($row["office"])."</option>";
+                                            echo "<option value='".htmlspecialchars($row["office"])."' >".htmlspecialchars($row["office"])."</option>";
                                         }
                                         echo "</select>";
                                         }
