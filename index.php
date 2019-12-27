@@ -17,8 +17,9 @@ if( isset( $_POST['login'] ) ) {
     // connect to database
     include('connection.php');
     
-    // create query
-    $query = "SELECT user_id, Name, Password FROM users WHERE Email='$formEmail'";
+    // create query. nested query because we are selecting from two tables
+    $query = "SELECT memberID, hashedPass, officeID FROM users WHERE memberID= 
+                (SELECT memberID FROM member_register WHERE email = '$formEmail')";
     
     // store the result
     $result = mysqli_query( $conn, $query );
@@ -30,9 +31,9 @@ if( isset( $_POST['login'] ) ) {
         
         // store basic user data in variables
         while( $row = mysqli_fetch_assoc($result) ) {
-            $name       = $row['Name'];
-            $hashedPass = $row['Password'];
-            $user_id = $row['user_id'];
+            //$name       = $row['name'];
+            $hashedPass = $row['hashedPass'];
+            $user_id = $row['memberID'];
         }
 
         //echo $name;
@@ -42,7 +43,7 @@ if( isset( $_POST['login'] ) ) {
             
             // correct login details!
             // store data in SESSION variables
-            $_SESSION['loggedInUser'] = $name;
+            //$_SESSION['loggedInUser'] = $name;
             $_SESSION['user_id'] = $user_id;
             
             // redirect user to clients page
