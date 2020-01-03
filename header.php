@@ -44,15 +44,15 @@
             <div class="collapse navbar-collapse" id="navbar-collapse">
                 
                 <?php
-                if( isset( $_SESSION['loggedInUser'] ) ) { // if user is logged in
+                if( isset( $_SESSION['user_id'] ) ) { // if user is logged in
                 ?>
                 <ul class="nav navbar-nav">
                     <li><a href="#">Dont Click</a></li>
-                    <li><a href="#">Add Course</a></li>
+                    <li><a href="#">Create register</a></li>
                 </ul>
 
                 <ul class="nav navbar-nav navbar-right">
-                    <p class="navbar-text">Aloha, <?php echo $_SESSION['loggedInUser']?>!</p>
+                    <p class="navbar-text">Aloha, <?php echo $_SESSION['user_id']?>!</p>
 
                     <li><a href="logout.php">Log out</a></li>
                 </ul>
