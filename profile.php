@@ -10,6 +10,7 @@ if( !$_SESSION['user_id'] ) {
 
 // connect to database
 include('connection.php');
+include('functions.php');
 
 // check first if user has some missing details in member_register
 $query = "SELECT phone_number FROM member_register WHERE memberID=".$_SESSION['user_id'];
@@ -33,12 +34,27 @@ if( isset( $_POST['viewData'] ) ) {
     if( $formCategory=="") {
         $errorMsg = "<div class='alert alert-danger'>Please select a category first.<a class='close' data-dismiss='alert'>&times;</a></div>";
     }
+
+    //based on the category, select data from the appropriate table name and display it to the screen
+    $query = "SELECT COLUMN_NAME FROM information_schema.columns WHERE TABLE_NAME='member_register'";
+    $result = mysqli_query( $conn, $query );
+
+    if($result){
+        $columnNames = array();
+        $count = 0;
+        while ($row=   mysqli_fetch_array($result) ){
+            $columnNames[$count] = $row[0];
+            $count++;
+        }
+        $string = implode(',',$columnNames);
+        echo $string, '<br>';
+    }
 }
 // close the mysql connection
 mysqli_close($conn);
 
 include('header.php');
-include('functions.php');
+//include('functions.php');
 ?>
 
 <div class = "container-fluid">
