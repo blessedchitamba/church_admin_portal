@@ -25,7 +25,11 @@
             <script src="https://oss.maxcdn.com/respond/1.4.2/respond.min.js"></script>
         <![endif]-->
     </head>
-    
+    <style>
+        table, th, td {
+          border: 1px solid black;
+        }
+    </style>
     <body style="padding-top: 60px;">            
     <nav class="navbar navbar-default navbar-fixed-top">
 

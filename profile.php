@@ -23,6 +23,10 @@ if($row = mysqli_fetch_assoc($result)) {
    }    
 }
 
+//page to be redirected if the user wants to alter the table
+if( isset( $_POST['editData'] ) ){
+    header("Location: editData.php");
+}
 
 // close the mysql connection
 mysqli_close($conn);
@@ -59,6 +63,7 @@ include('header.php');
                                 <?php
                                 //----------The viewing of the data------------
                                     $formCategory="";
+                                    $tableName="";
                                     // if view data was pressed form was submitted
                                     if( isset( $_POST['viewData'] ) ) {
                                         // create variables
@@ -73,7 +78,13 @@ include('header.php');
                                         }
 
                                         //based on the category, select data from the appropriate table name and display it to the screen
-                                        $query = "SELECT COLUMN_NAME FROM information_schema.columns WHERE TABLE_NAME='$formCategory'";
+                                        $query = "SELECT tb_name FROM table_names WHERE user_input='$formCategory'";
+                                        $result = mysqli_query( $conn, $query );
+                                        while($row = mysqli_fetch_assoc($result)){
+                                            $tableName = $row['tb_name'];
+                                        }
+
+                                        $query = "SELECT COLUMN_NAME FROM information_schema.columns WHERE TABLE_NAME='$tableName'";
                                         $result = mysqli_query( $conn, $query );
 
                                         if($result){
@@ -90,11 +101,11 @@ include('header.php');
 
                                             //the data rows
                                             $row = array();
-                                            $query = "SELECT member_register.name, member_register.surname, $formCategory.* FROM $formCategory INNER JOIN member_register ON $formCategory.memberID=member_register.memberID";
+                                            $query = "SELECT member_register.name, member_register.surname, $tableName.* FROM $tableName INNER JOIN member_register ON $tableName.memberID=member_register.memberID";
                                             $result = mysqli_query( $conn, $query );
                                             if($result){
                                                 //table header
-                                                echo "<table style= 'width:100%'>";
+                                                echo "<br><table style= 'width:100%'>";
                                                 echo "<tr>";
                                                 echo "<th>Name</th>";
                                                 echo "<th>Surname</th>";
@@ -105,12 +116,16 @@ include('header.php');
                                                 while($row = mysqli_fetch_array($result, MYSQLI_NUM)){
                                                     echo "<tr>";
                                                     for($i=0; $i<sizeof($row); $i++){
+                                                        //skip the memberID
+                                                        if($i==2){continue;}
                                                         echo "<td>".$row[$i]."</td>";
                                                     }
                                                     echo "</tr>";
                                                 }
                                                 echo "</table>";
                                             }
+                                            echo "<br>";
+                                            echo "<button type='submit' class='btn btn-success btn-block' name='editData'>Add/Remove entry</button>";
 
                                         }
                                     }
