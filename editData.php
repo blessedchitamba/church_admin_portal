@@ -1,20 +1,27 @@
 <?php
 session_start();
 
+if( (!$_SESSION['user_id']) && (!$_SESSION['tb_name']) ) {
+    
+    // send them to the login page
+    header("Location: index.php");
+}
+
 include("header.php");
 include('functions.php');
 
 //no need to start session in this case. We will redirect user to login page after
 //creating an account. 
+$errorMsg = "";
+$columnNames = array();
+$columnNames = $_SESSION['columnNames'];
+$formInputs = array(); //array for our user inputs
 
 $formName="";
 $formSurname="";
-$formEmail="";
-$formOffice="";
-$errorMsg="";
 
-// if sign up form was submitted
-if( isset( $_POST['signUp'] ) ) {
+// if addData was pressed
+if( isset( $_POST['add'] ) ) {
     // connect to database
     include('connection.php');
 
@@ -22,66 +29,25 @@ if( isset( $_POST['signUp'] ) ) {
     // wrap data with validate function
     $formName = validateFormData( $_POST['name']);
     $formSurname = validateFormData( $_POST['surname']);
-    $formEmail = validateFormData( $_POST['email'] );
-    $formOffice = validateFormData( $_POST['office'] );
-    $formPass = validateFormData( $_POST['password'] );
-    $formConfirmPass = validateFormData( $_POST['confirmPassword'] );
-
-    //if name is empty
-    if( $formName=="" || $formSurname=="") {
-    	$errorMsg = "<div class='alert alert-danger'>Name/Surname/Office cannot be empty.<a class='close' data-dismiss='alert'>&times;</a></div>";
-    } 
-    elseif( (strlen($formPass) < 6) && ($errorMsg=="")) {  //if password too short
-    	$errorMsg = "<div class='alert alert-danger'>Password must have at least 6 characters.<a class='close' data-dismiss='alert'>&times;</a></div>";
-    }
-    elseif( ($formPass != $formConfirmPass) && ($errorMsg=="")) {
-    	$errorMsg = "<div class='alert alert-danger'>Passwords do not match. Try again.<a class='close' data-dismiss='alert'>&times;</a></div>";
-    }
     
-
-    // check if email is used
-    $query = "SELECT * FROM users WHERE memberID = (SELECT memberID FROM member_register WHERE email = '$formEmail') LIMIT 1";
-
-    // store the result
-    $result = mysqli_query( $conn, $query );
-
-    if( mysqli_num_rows($result) != 0 ) {
-        $errorMsg = "<div class='alert alert-danger'>This email is already in use.<a class='close' data-dismiss='alert'>&times;</a></div>";
-    } elseif( !filter_var($formEmail, FILTER_VALIDATE_EMAIL) ) {
-        $errorMsg = "<div class='alert alert-danger'>Please enter a valid email.<a class='close' data-dismiss='alert'>&times;</a></div>";
+    //loop through the user inputs and validate them
+    for($i=1; $i<sizeof($columnNames); $i++){
+        $formInputs[$i-1] = validateFormData( $_POST[$i]);
     }
 
     //proceed if there are no password errors
     if( $errorMsg=="") {
 	    
-        //check if the person exists in members table
-        $query = "SELECT * FROM member_register WHERE email = '$formEmail' LIMIT 1";
+        //do the insert of the data. select the appropriate memberID first
+        $columns = implode("`, `", $columnNames);
+        $inputs = implode("', '", $formInputs);
+        $query = "INSERT INTO ".$_SESSION['tb_name']."(`$columns`) VALUES (
+                    (SELECT memberID FROM member_register WHERE name = '$formName' AND surname='$formSurname'), 
+                    '$inputs')";
         $result = mysqli_query( $conn, $query );
 
-        $hashedPass = password_hash($formPass, PASSWORD_DEFAULT);
-        //. if member exists, add them to users
-        if(mysqli_num_rows($result) != 0 ){
-            //user exists in members
-            $query = "INSERT INTO users(memberID, hashedPass, officeID) VALUES(
-                            (SELECT memberID FROM member_register WHERE name = '$formName'), '$hashedPass', 
-                            (SELECT officeID FROM offices WHERE office = '$formOffice'))";
-            $result = mysqli_query( $conn, $query );
-        } else {
-            //user does not exist in members; add them first. Add the other values as null values and update them when they log in first time
-            $query = "INSERT INTO member_register(name, surname, email, phone_number, university, degree, year_of_study)
-                            VALUES('$formName', '$formSurname', '$formEmail', NULL, NULL, NULL, NULL)";
-            $result = mysqli_query( $conn, $query );
-
-            //then add them to users
-            $query = "INSERT INTO users(memberID, hashedPass, officeID) VALUES(
-                            (SELECT memberID FROM member_register WHERE name = '$formName'), '$hashedPass', 
-                            (SELECT officeID FROM offices WHERE office = '$formOffice'))";
-            $result = mysqli_query( $conn, $query );
-        }
-
         if( $result) {
-            //redirect to success page
-            header( "Location: success.php?" );
+            echo "<div class='alert alert-success' role='alert'>Entry added successfully!<a class='close' data-dismiss='alert'>&times;</a></div>";
         } else {
              // something went wrong
             echo "Error: ". $query ."<br>" . mysqli_error($conn);
@@ -103,14 +69,13 @@ if(isset($conn)) {
 }
 ?>
 
-          <h1>Sign Up!</h1>
-
           <?php echo $errorMsg; ?>
           <!--Form start-->
           <div class = "container-fluid">
               <div class = "row">
                   <div class = "col-md-4 col-sm-4 col-xs-12"></div>
                   <div class = "col-md-4 col-sm-4 col-xs-12">
+                      <h1>Add an entry</h1>
                       <form class = "form-container" action="<?php echo htmlspecialchars( $_SERVER['PHP_SELF'] ); ?>" method="post">
                             <div class="form-group">
                                 <label for="InputName">First name</label>
@@ -120,43 +85,18 @@ if(isset($conn)) {
                                 <label for="InputName">Surname</label>
                                 <input type="text" class="form-control" id="InputSurname" placeholder="Surname" name="surname" value="<?php echo $formSurname; ?>">
                             </div>
-                            <div class="form-group">
-                                <label for="exampleInputEmail1">Email address</label>
-                                <input type="email" class="form-control" id="exampleInputEmail1" aria-describedby="emailHelp" placeholder="Enter email" 
-name="email" value="<?php echo $formEmail; ?>">
-                                <small id="emailHelp" class="form-text text-muted">We'll never share your email with anyone else.</small>
-                            </div>
-                            <div class="form-group">
-                                <label for="exampleInputPassword1">Password</label>
-                                <input type="password" class="form-control" id="exampleInputPassword1" placeholder="Password" name="password">
 
-                                <small id="passwordHelp" class="form-text text-muted">Password must be at least 6 characters long.</small>
-                            </div>
-                            <div class="form-group">
-                                <label for="confirmPassword">Confirm Password</label>
-                                <input type="password" class="form-control" id="confirmPassword" placeholder="Password" name="confirmPassword">
-                            </div>
-                            <div class="form-group">
-                                <label for="userOffice">Office</label>
-                                <?php
-                                    include('connection.php');
-                                    $query= "SELECT * FROM offices";
-                                    $result = mysqli_query( $conn, $query );
-                                    if(mysqli_num_rows($result) > 0 ) {
-                                        echo "<select id='userOffice' name='office'>";
-                                        echo "<option value=''>Select office...</option>";
-                                        while ($row=   mysqli_fetch_assoc($result) )
-                                        {
-                                            //echo "<option value='' >Hello there</option>";
-                                            echo "<option value='".htmlspecialchars($row["office"])."' >".htmlspecialchars($row["office"])."</option>";
-                                        }
-                                        echo "</select>";
-                                        }
-                                    mysqli_close($conn);
-                                ?>
-                            </div>
+                            <!--For the other table input fields-->
+                            <?php
+                                for($i=1; $i<sizeof($columnNames); $i++){ 
+                                    echo "<div class='form-group'>
+                                                <label for='".$i."'>".$columnNames[$i]."</label>
+                                                <input type='text' class='form-control' id='".$i."' placeholder='".$columnNames[$i]."' name='".$i."'>
+                                        </div>";
+                                }
+                            ?>
 
-                            <button type="submit" class="btn btn-success btn-block" name="signUp">Sign Up</button>
+                            <button type="submit" class="btn btn-success btn-block" name="add">Add!</button>
                       </form>
                   </div>
                   <div class = "col-md-4 col-sm-4 col-xs-12"></div>

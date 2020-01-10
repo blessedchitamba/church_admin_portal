@@ -82,6 +82,7 @@ include('header.php');
                                         $result = mysqli_query( $conn, $query );
                                         while($row = mysqli_fetch_assoc($result)){
                                             $tableName = $row['tb_name'];
+                                            $_SESSION['tb_name'] = $tableName;
                                         }
 
                                         $query = "SELECT COLUMN_NAME FROM information_schema.columns WHERE TABLE_NAME='$tableName'";
@@ -94,6 +95,9 @@ include('header.php');
                                                 $columnNames[$count] = $row[0];
                                                 $count++;
                                             }
+
+                                            //send the array to the session variable
+                                            $_SESSION['columnNames'] = $columnNames;
                                             //$string = implode(',',$columnNames);
                                             //echo $string, '<br>';
 
@@ -101,7 +105,8 @@ include('header.php');
 
                                             //the data rows
                                             $row = array();
-                                            $query = "SELECT member_register.name, member_register.surname, $tableName.* FROM $tableName INNER JOIN member_register ON $tableName.memberID=member_register.memberID";
+                                            //use alias for member_register to cater for the case where $tableName is member_register and its a self join
+                                            $query = "SELECT m.name, m.surname, $tableName.* FROM $tableName INNER JOIN member_register m ON $tableName.memberID=m.memberID";
                                             $result = mysqli_query( $conn, $query );
                                             if($result){
                                                 //table header
@@ -109,8 +114,9 @@ include('header.php');
                                                 echo "<tr>";
                                                 echo "<th>Name</th>";
                                                 echo "<th>Surname</th>";
-                                                echo "<th>".$columnNames[1]."</th>";
-                                                echo "<th>".$columnNames[2]."</th>";
+                                                for($i=1; $i<sizeof($columnNames); $i++){
+                                                    echo "<th>".$columnNames[$i]."</th>";
+                                                }
                                                 echo "</tr>";
 
                                                 while($row = mysqli_fetch_array($result, MYSQLI_NUM)){
