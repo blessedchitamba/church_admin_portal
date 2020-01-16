@@ -43,11 +43,24 @@ if( isset( $_POST['login'] ) ) {
             
             // correct login details!
             // store data in SESSION variables
-            //$_SESSION['loggedInUser'] = $name;
             $_SESSION['user_id'] = $user_id;
-            
-            // redirect user to clients page
-            header( "Location: profile.php" );
+
+            //check if the user is not the group pastor
+            $groupPastorID = "";
+            $query = "SELECT memberID FROM users WHERE officeID= 
+                (SELECT officeID FROM offices WHERE office= 'Group Pastor')";
+            $result = mysqli_query( $conn, $query );
+            if($result){
+              while($row = mysqli_fetch_assoc($result)){
+                $_SESSION['groupPastorID'] = $row['memberID'];
+              }
+            }
+            if($_SESSION['groupPastorID']==$user_id){
+               header( "Location: groupPastor.php" );
+            } else {
+              // redirect user to clients page
+              header( "Location: profile.php" );
+            }
         } else { // hashed password didn't verify
             
             // error message

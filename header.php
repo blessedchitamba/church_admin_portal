@@ -51,8 +51,8 @@
                 if( isset( $_SESSION['user_id'] ) ) { // if user is logged in
                 ?>
                 <ul class="nav navbar-nav">
-                    <li><a href="#">Dont Click</a></li>
-                    <li><a href="#">Create register</a></li>
+                    <li><a href="profile.php">Back to home</a></li>
+                    <li><a href="#">Create table</a></li>
                 </ul>
 
                 <ul class="nav navbar-nav navbar-right">

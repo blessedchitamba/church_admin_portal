@@ -2,7 +2,7 @@
 session_start();
 
 // if user is not logged in
-if( !$_SESSION['user_id'] ) {
+if( !$_SESSION['user_id'] && !$_SESSION['groupPastorID']==$_SESSION['user_id']) {
     
     // send them to the login page
     header("Location: index.php");
@@ -28,6 +28,11 @@ if( isset( $_POST['addRecord'] ) ){
     header("Location: addRecord.php");
 }
 
+//page to be redirected if the pastor wants to assign privileges
+if( isset( $_POST['assignPrivileges'] ) ){
+    header("Location: assignPrivileges.php");
+}
+
 // close the mysql connection
 mysqli_close($conn);
 
@@ -39,13 +44,14 @@ include('header.php');
               <div class = "row">
                   <div class = "col-md-4 col-sm-4 col-xs-12"></div>
                   <div class = "col-md-4 col-sm-4 col-xs-12">
+                        <h3>As the Group Pastor you can view all group data!</h3>
                       <form class = "form-container" action="<?php echo htmlspecialchars( $_SERVER['PHP_SELF'] ); ?>" method="post">
                             <div class="form-group">
-                                <label for="userCategory">Select table to view</label>
+                                <label for="userCategory">Select table to view from</label>
                                 <?php
-                                //-------The dropdown list that shows the categories the user can pick from-------- 
+                                //-------The dropdown list that shows all categories-------- 
                                     include('connection.php');
-                                    $query= "SELECT category FROM categories INNER JOIN privileges ON categories.categoryID=privileges.categoryID AND privileges.memberID=".$_SESSION['user_id'];
+                                    $query= "SELECT category FROM categories";
                                     $result = mysqli_query( $conn, $query );
                                     if(mysqli_num_rows($result) > 0 ) {
                                         echo "<select id='userCategory' name='category'>";
@@ -106,7 +112,8 @@ include('header.php');
                                             //the data rows
                                             $row = array();
                                             //use alias for member_register to cater for the case where $tableName is member_register and its a self join
-                                            $query = "SELECT m.name, m.surname, $tableName.* FROM $tableName INNER JOIN member_register m ON $tableName.memberID=m.memberID";
+                                            $query = "SELECT m.name, m.surname, $tableName.* FROM $tableName INNER JOIN member_register m 
+                                                        ON $tableName.memberID=m.memberID";
                                             $result = mysqli_query( $conn, $query );
                                             if($result){
                                                 //table header
@@ -131,7 +138,7 @@ include('header.php');
                                                 echo "</table>";
                                             }
                                             echo "<br>";
-                                            echo "<button type='submit' class='btn btn-success btn-block' name='addRecord'>Add record</button>";
+                                            echo "<button type='submit' class='btn btn-success btn-block' name='addRecord'>Add record</button><br>";
 
                                         }
                                     }
@@ -140,6 +147,10 @@ include('header.php');
                             </div>
 
                       </form>
+
+                      <!-- assigning of responsibilities. a button that redirects to another page-->
+                      <button type="submit" class="btn btn-success btn-block" name="assignPrivileges" aria-describedby="assignPrivileges">Assign privileges</button>
+                      <small id="assignPrivileges" class="form-text text-muted">Assign privileges to officers.</small>
                   </div>
                   <div class = "col-md-4 col-sm-4 col-xs-12"></div>
               </div>
