@@ -45,34 +45,36 @@ if( isset( $_POST['login'] ) ) {
             // store data in SESSION variables
             $_SESSION['user_id'] = $user_id;
 
-            //check if the user is not the group pastor
+            //check if the user is the GP
             $groupPastorID = "";
-            $query = "SELECT memberID FROM users WHERE officeID= 
-                (SELECT officeID FROM offices WHERE office= 'Group Pastor')";
+            $query = "SELECT office FROM offices WHERE officer = '$user_id'";
             $result = mysqli_query( $conn, $query );
-            if($result){
+            if( mysqli_num_rows($result) > 0 ){
               while($row = mysqli_fetch_assoc($result)){
-                $_SESSION['groupPastorID'] = $row['memberID'];
+                if($row['office']== 'Group Pastor'){
+                  //it means the user is a GP
+                  $_SESSION['groupPastorID']==$user_id;
+                  header( "Location: groupPastor.php" );
+                }else{
+                  //the user is any other officer
+                  header( "Location: profile.php" );
+                }
               }
-            }
-            if($_SESSION['groupPastorID']==$user_id){
-               header( "Location: groupPastor.php" );
-            } else {
-              // redirect user to clients page
+            }else {
+              //query returned zero rows meaning the person aint an officer
               header( "Location: profile.php" );
             }
-        } else { // hashed password didn't verify
-            
-            // error message
-            $loginError = "<div class='alert alert-danger'>Wrong username / password combination. Try again.</div>";
+
+        }else { // hashed password didn't verify  
+          // error message
+          $loginError = "<div class='alert alert-danger'>Wrong username / password combination. Try again.</div>";
         }
         
-    } else { // there are no results in database
-        
-        // error message
-        $loginError = "<div class='alert alert-danger'>No such user in database. Please try again. <a class='close' data-dismiss='alert'>&times;</a></div>";
-    }
+    }else { // there are no results in database
     
+      // error message
+      $loginError = "<div class='alert alert-danger'>No such user in database. Please try again. <a class='close' data-dismiss='alert'>&times;</a></div>";
+    }
 }
 
 //$password = password_hash("Blessed01", PASSWORD_DEFAULT);
