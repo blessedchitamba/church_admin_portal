@@ -145,12 +145,11 @@ include('header.php');
                                     mysqli_close($conn);
                                 ?>
                             </div>
+                            <!-- assigning of responsibilities. a button that redirects to another page-->
+                          <button type="submit" class="btn btn-success btn-block" name="assignPrivileges" aria-describedby="buttonHelp">Assign privileges</button>
+                          <small id="buttonHelp" class="form-text text-muted">Assign privileges to officers.</small>
 
                       </form>
-
-                      <!-- assigning of responsibilities. a button that redirects to another page-->
-                      <button type="submit" class="btn btn-success btn-block" name="assignPrivileges" aria-describedby="assignPrivileges">Assign privileges</button>
-                      <small id="assignPrivileges" class="form-text text-muted">Assign privileges to officers.</small>
                   </div>
                   <div class = "col-md-4 col-sm-4 col-xs-12"></div>
               </div>

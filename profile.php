@@ -41,24 +41,39 @@ include('header.php');
                   <div class = "col-md-4 col-sm-4 col-xs-12">
                       <form class = "form-container" action="<?php echo htmlspecialchars( $_SERVER['PHP_SELF'] ); ?>" method="post">
                             <div class="form-group">
-                                <label for="userCategory">Select table to view</label>
                                 <?php
                                 //-------The dropdown list that shows the categories the user can pick from-------- 
                                     include('connection.php');
-                                    $query= "SELECT category FROM categories INNER JOIN privileges ON categories.categoryID=privileges.categoryID AND privileges.memberID=".$_SESSION['user_id'];
+                                    //first check if the person is an officer
+                                    $query = "SELECT officeID, office FROM offices WHERE officer =".$_SESSION['user_id'];
                                     $result = mysqli_query( $conn, $query );
-                                    if(mysqli_num_rows($result) > 0 ) {
-                                        echo "<select id='userCategory' name='category'>";
-                                        echo "<option value=''>Select table...</option>";
-                                        while ($row=   mysqli_fetch_assoc($result) )
-                                        {
-                                            //echo "<option value='' >Hello there</option>";
-                                            echo "<option value='".htmlspecialchars($row["category"])."' >".htmlspecialchars($row["category"])."</option>";
+
+                                    if( mysqli_num_rows($result) > 0 ){ //if the person is found in the officers table, then show them privileges
+                                        $row = mysqli_fetch_assoc($result);
+                                        $query= "SELECT category FROM categories INNER JOIN officer_privileges ON 
+                                                    categories.categoryID=officer_privileges.categoryID AND 
+                                                    officer_privileges.officeID=".$row['officeID'];
+                                        $result = mysqli_query( $conn, $query );
+                                        if(mysqli_num_rows($result) > 0 ) {
+                                            echo "<p>As the ".$row['office']." officer you can view the following data.</p><br>";
+                                            echo "<label for='userCategory'>Select table to view</label>";
+                                            echo "<select id='userCategory' name='category'>";
+                                            echo "<option value=''>Select table...</option>";
+                                            while ($row=   mysqli_fetch_assoc($result) )
+                                            {
+                                                //echo "<option value='' >Hello there</option>";
+                                                echo "<option value='".htmlspecialchars($row["category"])."' >".htmlspecialchars($row["category"])."</option>";
+                                            }
+                                            echo "</select><br>";
+                                            echo "<button type='submit' class='btn btn-success btn-block' name='viewData'>View data</button>";
+                                        }else{
+                                            echo "<p>Apparently there is no data privilege assigned to your office yet.</p>";
                                         }
-                                        echo "</select>";
+                                    }else {
+                                        echo "<p>You are not assigned to any office to be able to view data.</p>";
                                     }
                                 ?>
-                                <button type="submit" class="btn btn-success btn-block" name="viewData">View data</button>
+                                
 
                                 <?php
                                 //----------The viewing of the data------------
