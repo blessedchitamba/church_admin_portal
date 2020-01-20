@@ -57,9 +57,6 @@ if( isset( $_POST['add'] ) ) {
     
 }
 
-//$password = password_hash("Blessed01", PASSWORD_DEFAULT);
-//echo $password;
-
 
 // close mysql connection
 if(isset($conn)) {
@@ -85,10 +82,16 @@ if(isset($conn)) {
                                 if(mysqli_num_rows($result) > 0 ){ 
                                   echo "<h3>Enter correct name and surname of each officer to be assigned below:</h3><br>";
                                   while($row = mysqli_fetch_assoc($result)){ 
-                                      echo "<div class='form-group'>
-                                                  <label for='".$i."'>".$row['office']."</label>
-                                                  <input type='text' class='form-control' id='".$i."' placeholder='e.g Tebogo Jones' name='".$i."'>
-                                          </div>";
+                                      echo "<label for='".$i."'>".$row['office']."</label>
+                                            <div class='form-row' id='".$i."'>
+                                                  
+                                                  <div class='col-md-6 col-sm-6 col-xs-6' style='padding-right: 5px; padding-left: 0px'>
+                                                      <input type='text' class='form-control' placeholder='Name' name='".$i."'>
+                                                  </div>
+                                                  <div class='col-md-6 col-sm-6 col-xs-6' style='padding-right: 0px; padding-left: 5px'>
+                                                      <input type='text' class='form-control' placeholder='Surname' name='".$i."'>
+                                                  </div>
+                                            </div>";
                                   }
                                 }else{
                                   //all offices are occupied
