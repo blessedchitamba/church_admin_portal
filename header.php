@@ -30,6 +30,11 @@
           border: 1px solid black;
         }
     </style>
+    <script>
+        if ( window.history.replaceState ) {
+            window.history.replaceState( null, null, window.location.href );
+        }
+    </script>
     <body style="padding-top: 60px;">            
     <nav class="navbar navbar-default navbar-fixed-top">
 
@@ -48,27 +53,36 @@
             <div class="collapse navbar-collapse" id="navbar-collapse">
                 
                 <?php
-                if( isset( $_SESSION['user_id'] ) ) { // if user is logged in
-                ?>
-                <ul class="nav navbar-nav">
-                    <li><a href="profile.php">Back to home</a></li>
-                    <li><a href="#">Create table</a></li>
-                </ul>
+                    $href = "";
 
-                <ul class="nav navbar-nav navbar-right">
-                    <p class="navbar-text">Aloha, <?php echo $_SESSION['user_id']?>!</p>
+                    if( isset( $_SESSION['user_id'] ) ) { // if user is logged in
+                        //check if the group pastor is the one logged in
+                        if(isset($_SESSION['groupPastorID'])){
+                            $href = "groupPastor.php";
+                        }else{
+                            $href = "profile.php";
+                        }     
 
-                    <li><a href="logout.php">Log out</a></li>
-                </ul>
-                <?php
-                } else {
-                ?>
-                <ul class="nav navbar-nav navbar-right">
-                    <li><a href="index.php">Log in</a></li>
-                </ul>
-                <?php
-                }
-                ?>
+                        echo "<ul class='nav navbar-nav'>";
+                            echo "<li><a href=".$href.">Back to home</a></li>
+                            <li><a href='#'>Create table</a></li>
+                        </ul>";
+                    ?>
+
+                        <ul class="nav navbar-nav navbar-right">
+                            <p class="navbar-text">Aloha, <?php echo $_SESSION['user_id']?>!</p>
+
+                            <li><a href="logout.php">Log out</a></li>
+                        </ul>
+                    <?php
+                    } else {
+                    ?>
+                        <ul class="nav navbar-nav navbar-right">
+                            <li><a href="index.php">Log in</a></li>
+                        </ul>
+                    <?php
+                    }
+                    ?>
 
             </div>
 

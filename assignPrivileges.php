@@ -20,7 +20,6 @@ $offices = array();
 
 $formName="";
 $formSurname="";
-$i = 1;
 $mult = 20;
 
 // if addData was pressed
@@ -36,7 +35,7 @@ if( isset( $_POST['add'] ) ) {
     }
     
     //loop through the user inputs and validate them
-    for($k=1; $k<=4; $k++){
+    for($k=1; $k<=$_SESSION['i']; $k++){
         $formName = validateFormData( $_POST[$k]);
         $formSurname = validateFormData($_POST[$mult*$k]);
 
@@ -73,8 +72,11 @@ if( isset( $_POST['add'] ) ) {
     //after the loop, display an error message showing who needs to be re-entered
     if(sizeof($invalidEntries)>0){
       $names = implode(", ", $invalidEntries);
-      $errorMsg = "<div class='alert alert-danger'>".$names." could not be entered. Please ensure name and surname spellings are correct.<a class='close' data-dismiss='alert'>&times;</a></div>";
+      echo "<div class='alert alert-danger'>".$names." could not be entered. Please ensure name and surname spellings are correct.<a class='close' data-dismiss='alert'>&times;</a></div>";
     }
+
+    //redirect to same page to avoid form resubmission on page reload
+    //header("Location: assignPrivileges.php");
     
 }
 
@@ -95,6 +97,7 @@ if(isset($conn)) {
 
                             <!--For the other table input fields-->
                             <?php
+                                $i = 1;
                                 // connect to database
                                 include('connection.php');
                                 $query = "SELECT office FROM offices WHERE officer IS NULL";
@@ -115,6 +118,7 @@ if(isset($conn)) {
                                             </div>";
                                       $i++;
                                   }
+                                  $_SESSION['i'] = $i-1;
                                 }else{
                                   //all offices are occupied
                                   echo "<p>You have assigned all offices. Click on any to change.</p>";

@@ -53,7 +53,7 @@ if( isset( $_POST['login'] ) ) {
               while($row = mysqli_fetch_assoc($result)){
                 if($row['office']== 'Group Pastor'){
                   //it means the user is a GP
-                  $_SESSION['groupPastorID']==$user_id;
+                  $_SESSION['groupPastorID']=$user_id;
                   header( "Location: groupPastor.php" );
                 }else{
                   //the user is any other officer
