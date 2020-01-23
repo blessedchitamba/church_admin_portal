@@ -30,6 +30,7 @@
           border: 1px solid black;
         }
     </style>
+    <!--Script to prevent form resubmission when page is reloaded-->
     <script>
         if ( window.history.replaceState ) {
             window.history.replaceState( null, null, window.location.href );
