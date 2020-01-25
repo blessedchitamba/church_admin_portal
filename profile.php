@@ -44,18 +44,28 @@ include('header.php');
                                 <?php
                                 //-------The dropdown list that shows the categories the user can pick from-------- 
                                     include('connection.php');
-                                    //first check if the person is an officer
-                                    $query = "SELECT officeID, office FROM offices WHERE officer =".$_SESSION['user_id'];
+                                    //first check if the person has any assigned privileges. also retreive office names
+                                    $query = "SELECT u.officeID, o.office FROM user_privileges u 
+                                                    INNER JOIN offices o ON o.officeID=u.officeID 
+                                                    AND u.memberID =".$_SESSION['user_id'];
                                     $result = mysqli_query( $conn, $query );
 
-                                    if( mysqli_num_rows($result) > 0 ){ //if the person is found in the officers table, then show them privileges
+                                    //store office names in array
+                                    $user_offices = array();
+                                    while($row = mysqli_fetch_assoc($result)){
+                                        array_push($user_offices, $row['office']);
+                                    }
+
+                                    if( mysqli_num_rows($result) > 0 ){ //if the person is found in the user_privs table, then show them privileges
                                         $row = mysqli_fetch_assoc($result);
-                                        $query= "SELECT category FROM categories INNER JOIN officer_privileges ON 
-                                                    categories.categoryID=officer_privileges.categoryID AND 
-                                                    officer_privileges.officeID=".$row['officeID'];
+                                        $query= "SELECT category FROM categories 
+                                                    INNER JOIN office_privileges ON categories.categoryID=office_privileges.categoryID 
+                                                    INNER JOIN user_privileges ON office_privileges.officeID=user_privileges.officeID 
+                                                    AND user_privileges.memberID=".$_SESSION['user_id'];
                                         $result = mysqli_query( $conn, $query );
                                         if(mysqli_num_rows($result) > 0 ) {
-                                            echo "<p>As the ".$row['office']." officer you can view the following data.</p><br>";
+                                            echo "<p>You are currently assigned to view data from the following 
+                                                        offices: ".implode(", ",$user_offices).".</p><br>";
                                             echo "<label for='userCategory'>Select table to view</label>";
                                             echo "<select id='userCategory' name='category'>";
                                             echo "<option value=''>Select table...</option>";
