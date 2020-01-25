@@ -28,7 +28,7 @@ if( isset( $_POST['add'] ) ) {
     include('connection.php');
 
     //select all offices with null and push them into array
-    $query = "SELECT office FROM offices WHERE officer IS NULL";
+    $query = "SELECT office FROM offices";
     $result = mysqli_query( $conn, $query );
     while($row = mysqli_fetch_assoc($result)){
       array_push($offices, $row['office']);
@@ -47,10 +47,12 @@ if( isset( $_POST['add'] ) ) {
         $result = mysqli_query( $conn, $query );
 
         if($result){
-            //if the member is in, run the update query
+            //if the member is in, run the insert query
             $row=   mysqli_fetch_array($result);
-            $query = "UPDATE offices SET officer=".$row['memberID']." WHERE office='".$offices[$k-1]."'";
+            $query = "INSERT INTO user_privileges(memberID, officeID) VALUES(".$row['memberID'].", 
+                          (SELECT officeID FROM offices WHERE office='".$offices[$k-1]."') )";
             $result = mysqli_query( $conn, $query );
+
             if($result){
                 array_push($validEntries, $formName);
             }else{
@@ -100,14 +102,31 @@ if(isset($conn)) {
                                 $i = 1;
                                 // connect to database
                                 include('connection.php');
-                                $query = "SELECT office FROM offices WHERE officer IS NULL";
+                                $query = "SELECT officeID, office FROM offices";
                                 $result = mysqli_query( $conn, $query );
                                 
                                 if(mysqli_num_rows($result) > 0 ){ 
                                   echo "<h3>Enter correct name and surname of each officer to be assigned below:</h3><br>";
                                   while($row = mysqli_fetch_assoc($result)){ 
-                                      echo "<label for='".$i."'>".$row['office']."</label>
-                                            <div class='form-row' id='".$i."'>
+
+                                      echo "<label for='".$i."'>".$row['office']."</label>";
+
+                                      //first do a query to display all the people given to that office
+                                      $query = "SELECT name FROM member_register 
+                                                  INNER JOIN user_privileges ON user_privileges.memberID=member_register.memberID 
+                                                  AND user_privileges.officeID=".$row['officeID'];
+                                      $result2 = mysqli_query($conn, $query);
+
+                                      //store office names in array
+                                      $officers = array();
+                                      while($row2 = mysqli_fetch_assoc($result2)){
+                                          array_push($officers, $row2['name']);
+                                      }
+                                      if(sizeof($officers)>0){
+                                          echo "<p>The following are already assigned to this office: ".implode(", ",$officers)." </p>";
+                                      }
+
+                                      echo  "<div class='form-row' id='".$i."'>
                                                   
                                                   <div class='col-md-6 col-sm-6 col-xs-6' style='padding-right: 5px; padding-left: 0px'>
                                                       <input type='text' class='form-control' placeholder='Name' name='".$i."'>
@@ -115,7 +134,7 @@ if(isset($conn)) {
                                                   <div class='col-md-6 col-sm-6 col-xs-6' style='padding-right: 0px; padding-left: 5px'>
                                                       <input type='text' class='form-control' placeholder='Surname' name='".$mult*$i."'>
                                                   </div>
-                                            </div>";
+                                            </div><br>";
                                       $i++;
                                   }
                                   $_SESSION['i'] = $i-1;
