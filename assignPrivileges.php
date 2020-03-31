@@ -16,6 +16,7 @@ $errorMsg = "";
 $formInputs = array(); //array for our user inputs
 $invalidEntries = array();  //array for any invalid member entries
 $validEntries = array();  //array of valid entries
+$duplicateEntries = array();  //array of duplicate entries
 $offices = array();
 
 $formName="";
@@ -45,10 +46,24 @@ if( isset( $_POST['add'] ) ) {
         //error handling in case group pastor types a non existant name
         $query = "SELECT memberID FROM member_register WHERE name='$formName' AND surname='$formSurname' LIMIT 1";
         $result = mysqli_query( $conn, $query );
+        
 
+        //carry on with inserting member into db
         if($result){
             //if the member is in, run the insert query
             $row=   mysqli_fetch_array($result);
+
+            //checking for duplicate entries into the table
+            $query = "SELECT memberID, officeID FROM user_privileges WHERE memberID=".$row['memberID']." AND 
+                            officeID=(SELECT officeID FROM offices WHERE office='".$offices[$k-1]."') LIMIT 1";
+            $result = mysqli_query($conn, $query);
+            if($result){ 
+              if(mysqli_num_rows($result) > 0){
+                 continue;
+              }
+           }
+
+            //go ahead with the insertion
             $query = "INSERT INTO user_privileges(memberID, officeID) VALUES(".$row['memberID'].", 
                           (SELECT officeID FROM offices WHERE office='".$offices[$k-1]."') )";
             $result = mysqli_query( $conn, $query );
@@ -74,7 +89,8 @@ if( isset( $_POST['add'] ) ) {
     //after the loop, display an error message showing who needs to be re-entered
     if(sizeof($invalidEntries)>0){
       $names = implode(", ", $invalidEntries);
-      echo "<div class='alert alert-danger'>".$names." could not be entered. Please ensure name and surname spellings are correct.<a class='close' data-dismiss='alert'>&times;</a></div>";
+      echo "<div class='alert alert-danger'>".$names." could not be entered. Please ensure name and surname spellings are correct or that
+                they exist in the members database.<a class='close' data-dismiss='alert'>&times;</a></div>";
     }
 
     //redirect to same page to avoid form resubmission on page reload
