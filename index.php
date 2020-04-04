@@ -45,19 +45,39 @@ if( isset( $_POST['login'] ) ) {
             // store data in SESSION variables
             $_SESSION['user_id'] = $user_id;
 
-            //check if the user is the GP
-            $groupPastorID = "";
-            $query = "SELECT office FROM offices WHERE officer = '$user_id'";
+            //check what role the user has
+            $query = "SELECT role_name FROM roles WHERE role_id =(SELECT role_id FROM office_leaders WHERE memberID = '$user_id')";
             $result = mysqli_query( $conn, $query );
+
+            //if the user is in the leaders table, they get directed to the appropriate page
             if( mysqli_num_rows($result) > 0 ){
               while($row = mysqli_fetch_assoc($result)){
-                if($row['office']== 'Group Pastor'){
-                  //it means the user is a GP
-                  $_SESSION['groupPastorID']=$user_id;
-                  header( "Location: groupPastor.php" );
-                }else{
-                  //the user is any other officer
-                  header( "Location: profile.php" );
+
+                $userRole = $row['role_name'];
+                echo "<p>'$userRole'</p>";
+                $_SESSION['userRole']=$userRole;
+                switch($userRole){
+                    case 'Zonal Secretary':
+                      header( "Location: zonalSec.php" );
+                      break;
+                    case 'Group Pastor':
+                      header( "Location: groupPastor.php" );
+                      break;
+                    case 'Coordinator':
+                      header( "Location: coordinator.php" );
+                      break;
+                    case 'Zonal Manager':
+                      header( "Location: zonalManager.php" );
+                      break;
+                    case 'Officer':
+                      header( "Location: officer.php" );
+                      break;
+                    case 'Rep':
+                      header( "Location: rep.php" );
+                      break;
+                    case 'Cell Leader':
+                      header( "Location: cellLeader.php" );
+                      break;
                 }
               }
             }else {
